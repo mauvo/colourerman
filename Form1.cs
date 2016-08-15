@@ -54,8 +54,27 @@ namespace ColourerMan
             UpdatePrimary(preview);
             UpdateSecondary(preview);
             UpdateTertiary(preview);
+            UpdateMaskColor(preview);
 
             pictureBox1.Image = Scale(preview);
+        }
+
+        private void UpdateMaskColor(Bitmap preview)
+        {
+            var tertiaryColor = pictureBox2.BackColor;
+
+            var layer = Layers.mask_border;
+            for (int i = 0; i < layer.Width; i++)
+            {
+                for (int j = 0; j < layer.Height; j++)
+                {
+                    var pixel = layer.GetPixel(i, j);
+                    if (pixel.A == 0)
+                        continue;
+                    
+                    preview.SetPixel(i, j, tertiaryColor);
+                }
+            }
         }
 
         private void UpdateTertiary(Bitmap preview)
@@ -148,6 +167,15 @@ namespace ColourerMan
             if (colorDialog1.ShowDialog() == DialogResult.OK)
             {
                 pictureBox7.BackColor = colorDialog1.Color;
+                UpdatePreview();
+            }
+        }
+
+        private void pictureBox2_Click(object sender, EventArgs e)
+        {
+            if (colorDialog1.ShowDialog() == DialogResult.OK)
+            {
+                pictureBox2.BackColor = colorDialog1.Color;
                 UpdatePreview();
             }
         }

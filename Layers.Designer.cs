@@ -73,6 +73,16 @@ namespace ColourerMan {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap mask_border {
+            get {
+                object obj = ResourceManager.GetObject("mask_border", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap primary {
             get {
                 object obj = ResourceManager.GetObject("primary", resourceCulture);
