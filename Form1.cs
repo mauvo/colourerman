@@ -12,54 +12,62 @@ namespace ColourerMan
 {
     public partial class Form1 : Form
     {
+        private Bitmap preview;
+
         public Form1()
         {
             InitializeComponent();
             this.pictureBox1.Location = new Point(10, 20);
             this.pictureBox1.Width = 624;
             this.pictureBox1.Height = 452;
-            this.pictureBox1.SizeMode = PictureBoxSizeMode.StretchImage;
-            
-            this.pictureBox2.Location = new Point(0, 0);
-            this.pictureBox2.Width = 624;
-            this.pictureBox2.Height = 452;
-            this.pictureBox2.SizeMode = PictureBoxSizeMode.StretchImage;
 
-            this.pictureBox4.Location = new Point(0, 0);
-            this.pictureBox4.Width = 624;
-            this.pictureBox4.Height = 452;
-            this.pictureBox4.SizeMode = PictureBoxSizeMode.StretchImage;
+            UpdatePreview();
 
-            this.pictureBox6.Location = new Point(0, 0);
-            this.pictureBox6.Width = 624;
-            this.pictureBox6.Height = 452;
-            this.pictureBox6.SizeMode = PictureBoxSizeMode.StretchImage;
+        }
 
-            this.pictureBox1.Controls.Add(this.pictureBox2);
-            this.pictureBox2.Controls.Add(this.pictureBox4);
-            this.pictureBox4.Controls.Add(this.pictureBox6);
+        private Bitmap Scale(Bitmap orig)
+        {
+            var scaled = new Bitmap(orig.Width * 4, orig.Height * 4);
 
+            for (int x = 0; x < orig.Width; x++)
+            {
+                for (int y = 0; y < orig.Height; y++)
+                {
+                    var sx = x * 4;
+                    var sy = y * 4;
+                    for (int i = 0; i < 4; i++)
+                    {
+                        for (int j = 0; j < 4; j++)
+                        {
+                            scaled.SetPixel(sx + i, sy + j, orig.GetPixel(x, y));
+                        }
+                    }
+                }
+            }
+            return scaled;
         }
 
         private void UpdatePreview()
         {
-            UpdatePrimary();
-            UpdateSecondary();
-            UpdateTertiary();
+            preview = new Bitmap(Layers._base);
 
-            pictureBox1.Refresh();
+            UpdatePrimary(preview);
+            UpdateSecondary(preview);
+            UpdateTertiary(preview);
+
+            pictureBox1.Image = Scale(preview);
         }
 
-        private void UpdateTertiary()
+        private void UpdateTertiary(Bitmap preview)
         {
             var tertiaryColor = pictureBox7.BackColor;
 
-            var bmp = new Bitmap(Layers.tertiary);
-            for (int i = 0; i < bmp.Width; i++)
+            var layer = Layers.tertiary;
+            for (int i = 0; i < layer.Width; i++)
             {
-                for (int j = 0; j < bmp.Height; j++)
+                for (int j = 0; j < layer.Height; j++)
                 {
-                    var pixel = bmp.GetPixel(i, j);
+                    var pixel = layer.GetPixel(i, j);
                     if (pixel.A == 0)
                         continue;
                     var brightness = pixel.GetBrightness();
@@ -69,23 +77,21 @@ namespace ColourerMan
                     else
                         color = tertiaryColor.Lerp(Color.Black, 0.5f - brightness);
 
-                    bmp.SetPixel(i, j, color);
+                    preview.SetPixel(i, j, color);
                 }
             }
-
-            this.pictureBox6.Image = bmp;
         }
 
-        private void UpdateSecondary()
+        private void UpdateSecondary(Bitmap preview)
         {
             var secondaryColor = pictureBox5.BackColor;
-            
-            var bmp = new Bitmap(Layers.secondary);
-            for (int i = 0; i < bmp.Width; i++)
+
+            var layer = Layers.secondary;
+            for (int i = 0; i < layer.Width; i++)
             {
-                for (int j = 0; j < bmp.Height; j++)
+                for (int j = 0; j < layer.Height; j++)
                 {
-                    var pixel = bmp.GetPixel(i, j);
+                    var pixel = layer.GetPixel(i, j);
                     if (pixel.A == 0)
                         continue;
                     var brightness = pixel.GetBrightness();
@@ -95,32 +101,28 @@ namespace ColourerMan
                     else
                         color = secondaryColor.Lerp(Color.Black, 0.5f - brightness);
 
-                    bmp.SetPixel(i, j, color);
+                    preview.SetPixel(i, j, color);
                 }
             }
-
-            this.pictureBox4.Image = bmp;
         }
 
-        private void UpdatePrimary()
+        private void UpdatePrimary(Bitmap preview)
         { 
             var primaryColor = pictureBox3.BackColor;
-            
-            var bmp = new Bitmap(Layers.primary);
-            for (int i = 0; i < bmp.Width; i++)
+
+            var layer = Layers.primary;
+            for (int i = 0; i < layer.Width; i++)
             {
-                for (int j = 0; j < bmp.Height; j++)
+                for (int j = 0; j < layer.Height; j++)
                 {
-                    var pixel = bmp.GetPixel(i, j);
+                    var pixel = layer.GetPixel(i, j);
                     if (pixel.A == 0)
                         continue;
                     var brightness = pixel.GetBrightness();
                     var color = Color.FromArgb((int)(primaryColor.R * brightness), (int)(primaryColor.G * brightness), (int)(primaryColor.B*brightness));
-                    bmp.SetPixel(i, j, color);
+                    preview.SetPixel(i, j, color);
                 }
             }
-
-            this.pictureBox2.Image = bmp;
         }
 
         private void pictureBox3_Click(object sender, EventArgs e)
@@ -154,12 +156,7 @@ namespace ColourerMan
         {
             if (saveFileDialog1.ShowDialog() == DialogResult.OK)
             {
-                var bmp = new Bitmap(pictureBox1.Image);
-                OverlayBitmap(bmp, new Bitmap(pictureBox2.Image));
-                OverlayBitmap(bmp, new Bitmap(pictureBox4.Image));
-                OverlayBitmap(bmp, new Bitmap(pictureBox6.Image));
-
-                bmp.Save((System.IO.FileStream)saveFileDialog1.OpenFile(), System.Drawing.Imaging.ImageFormat.Png);
+                preview.Save((System.IO.FileStream)saveFileDialog1.OpenFile(), System.Drawing.Imaging.ImageFormat.Png);
             }
         }
 
